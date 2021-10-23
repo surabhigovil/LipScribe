@@ -28,17 +28,20 @@ debug = False
 # list all words
 print(", ".join(os.listdir(video_path)))
 
-# words for training
-sub_folders = [name for name in os.listdir(video_path) if os.path.isdir(os.path.join(video_path, name))]
-print(sub_folders)
-print(len(sub_folders))
+# all the words for training
+#sub_folders = [name for name in os.listdir(video_path) if os.path.isdir(os.path.join(video_path, name))]
+#print(sub_folders)
+#print(len(sub_folders))
 
 # In[32]:
 
+# train_words subset of words for training
+train_words = ['AGREE', 'BUSINESS', 'CUSTOMERS', 'DAVID', 'DEATH', 'ECONOMY', 'TRYING', 'UNDER', 'VICTIMS', 'WAITING', 'YEARS']
+print(len(train_words))
 
-classes = len(sub_folders)  # len(words)
+classes = len(train_words)  # len(words)
 
-labels = sub_folders
+labels = train_words
 num_labels = [i for i in range(0, len(labels))]
 hot_labels = to_categorical(num_labels)
 
@@ -183,14 +186,14 @@ tensorboard = TensorBoard(log_dir="logs/{}".format(model_name),
                           write_graph=True, write_images=True)
     
 filepath = models_dir + model_name + ".h5"
-checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1,
+checkpoint = ModelCheckpoint(filepath, monitor='val_accuracy', verbose=1,
                              save_best_only=True, save_weights_only=True, mode='max')
 
-earlyStopping = EarlyStopping(monitor='val_acc', patience=4, verbose=1, mode='max')
+earlyStopping = EarlyStopping(monitor='val_accuracy', patience=4, verbose=1, mode='max')
 
 csv_logger = CSVLogger('outputs/log_{}.csv'.format(model_name), append=True, separator=';')
 
-learning_rate_reduction = ReduceLROnPlateau(monitor='val_acc', patience=3, verbose=1, factor=0.5, min_lr=0.0001)
+learning_rate_reduction = ReduceLROnPlateau(monitor='val_accuracy', patience=3, verbose=1, factor=0.5, min_lr=0.0001)
 
 
 # ## Run the training model
@@ -224,8 +227,8 @@ def plot_and_save_training():
     plt.figure(1, figsize=(8,8))
     # summarize history for accuracy
     plt.subplot(211)
-    plt.plot(history.history['acc'])
-    plt.plot(history.history['val_acc'])
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
     plt.title('model accuracy')
     plt.ylabel('accuracy')
     plt.xlabel('no. of epoch')
