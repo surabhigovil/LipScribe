@@ -5,10 +5,15 @@ from tensorflow import keras
 import tensorflow as tf
 from tensorflow.keras.models import model_from_json
 import json 
+import os
+import sys 
 
-video_path = "LRW/lipread_mp4/AGREE/test/AGREE_00001.mp4"
+video_path = <video_path_here>
 
-
+if os.path.exists(video_path):
+    print(video_path)
+else:
+    sys.exit("video path does not exist")
 
 json_file = open('./lip_reading_models/model_D.json', 'r')
 loaded_model_json = json_file.read()
