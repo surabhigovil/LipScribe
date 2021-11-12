@@ -4,196 +4,67 @@ from PIL import Image
 from tensorflow import keras 
 import tensorflow as tf
 from tensorflow.keras.models import model_from_json
-import json 
 import os
 import sys 
+from preprocessing import video_to_npy_array
 
-video_path = <video_path_here>
+#test video path
+video_path=<add video path here>
 
 if os.path.exists(video_path):
-    print(video_path)
+    print("path exists")
 else:
     sys.exit("video path does not exist")
 
-json_file = open('./lip_reading_models/model_D.json', 'r')
-loaded_model_json = json_file.read()
-json_file.close()
-loaded_model = model_from_json(loaded_model_json)
-# load weights into new model
-loaded_model.load_weights("./lip_reading_models/model_D.h5")
+models_dir = 'lip_reading_models/'
 
-# set the sizes of mouth region (ROI) -> input shape
-WIDTH = 24
-HEIGHT = 32
-DEPTH = 28
+model_sve_name = "test_model"
 
-# Haar cascade classifiers - frontal face, profile face and mouth detection
-face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-face_profile_cascade = cv2.CascadeClassifier('haarcascade_profileface.xml')
-mouth_cascade = cv2.CascadeClassifier('haarcascade_mouth.xml')
+# to create feature embedding from video will have to call the function with width, height and depth as set in preprocessign file
+video_npy = video_to_npy_array(video_path)
 
-def video_to_npy_array(video):
+def get_model(model_path, model_weights_path):
 
-    cap = cv2.VideoCapture(video)
+    json_file = open(model_path, 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    loaded_model = model_from_json(loaded_model_json)
 
-    count = 0
+    # load weights into new model
+    loaded_model.load_weights(model_weights_path)
+    print("Loaded Model from disk")
 
-    # initialize MedianFlow tracker for tracking mouth region
-    medianflow_tracker = cv2.TrackerMedianFlow_create()
+    # compile and evaluate loaded model
+    loaded_model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
+    print("Loaded Model Weights from disk")
 
-    lip_frames = []
-    frames = []
-    found_first_frame = False
-    found_lips = False
-    found_face = False
-    video_array = None
-
-    while cap.isOpened():
-        # Capture frame-by-frame
-        ret, frame = cap.read()
-        if not ret:
-            if len(lip_frames) > 0:
-                video_array = np.array(lip_frames, dtype="uint8")
-            break
-        # convert frames to grayscale
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-        if not found_lips:
-            # use Haar classifier to find the frontal face
+    return loaded_model
 
 
-            faces = face_cascade.detectMultiScale(gray, 1.2, 3, minSize=(100, 100))
-            if len(faces) == 0:
-           
-                    
-                # if frontal face is not found then try to detect profile face
-                faces = face_profile_cascade.detectMultiScale(gray, 1.2, 3, minSize=(100, 100))
-                if len(faces) == 0:
-                    found_face = False
-                    if not found_lips:
-                    
-                        break
-                else:
-                    found_face = True
-            else:
-                found_face = True
+model = get_model(models_dir + model_sve_name + '.json', models_dir + model_sve_name + '.h5')
 
-            if found_face:
-                face = faces[0]
-                face[3] += 20
-                
-                for (x,y,w,h) in faces:
-                # drawing rectangle for face
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+# test if model loaded correctly
+model.summary()
 
-                lower_face = int(h * 0.5)
-                lower_face_roi = gray[y + lower_face:y + h, x:x + w]
+# load the test video and create embedding 
+def load_data(video_path):
+    
+    X = []        
+    sample = np.load(video_path,allow_pickle=True)
+    print(sample.shape)
+    sample = (sample.astype("float16") - 128) / 128  # normalize to 0 - 1
+    X.append(sample)
+    
+    X = np.array(X)
+    X = X.reshape(X.shape + (1,))
 
-                # detect mouth region in lower half of the face
-                mouths = mouth_cascade.detectMultiScale(lower_face_roi, 1.3, 15)
-                if len(mouths) > 0:
-                    # if first mouth is found
-                    mouth = mouths[0]
-                    mouth[0] += x  # add face x to fix absolute pos
-                    mouth[1] += y + lower_face  # add face y to fix absolute pos
-
-                    m = mouth
-                    # drawing rectangle for mouth
-                    cv2.rectangle(frame, (m[0], m[1]), (m[0] + m[2], m[1] + m[3]), (0, 255, 0), 2)
-
-                    # initialized the init tracker
-                    if not found_lips:
-                        lip_track = mouth
-                        # extend tracking area
-                        lip_track[0] -= 10
-                        lip_track[1] -= 20
-                        lip_track[2] += 20
-                        lip_track[3] += 30
-                        medianflow_tracker.init(frame, tuple(lip_track))
-                        found_lips = True
-
-                    if count == 0:
-                        found_first_frame = True
-
-                    if not found_first_frame:
-                        cap = cv2.VideoCapture(video)
-                        found_first_frame = True
-                        continue
-
-                # skip the sample, if the face is not found
-                else:
-                    if not found_lips:
-                     
-                        break
-        # Update medianflow tracker
-        else:
-            ok, bbox = medianflow_tracker.update(frame)
-            # if tracker is successfully matched in following frame
-            if ok:
-                p1 = (int(bbox[0]), int(bbox[1]))
-                p2 = (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3]))
-                cv2.rectangle(frame, p1, p2, (0, 0, 255), 2)
-
-                lips_roi = gray[
-                           int(bbox[1]):int(bbox[1]) + int(bbox[3]),
-                           int(bbox[0]):int(bbox[0]) + int(bbox[2])
-                           ]
-
-                # prevent crash when tracker goes out of frame
-                # and skip video if this occurs (eg. waved hand in front of mouth...)
-                if lips_roi.size == 0:
-                    break
-
-                lips_resized = cv2.resize(lips_roi, (HEIGHT, WIDTH), interpolation=cv2.INTER_AREA)
-                lip_frames.append(lips_resized)
-         
-
-            # if tracker is lost, skip the sample
-            else:
-             
-                break
-        
-        if len(frames) != DEPTH:
-            #cv2.imwrite('outputs/haar/frame-' + str(count) + ".png", frame)
-            frames.append(frame)
-        count += 1
-        if count > DEPTH:
-            video_array = np.array(lip_frames, dtype="uint8")
-            break
-
-    cap.release()
-    return video_array
+    return X
 
 
-# while True:
-#         _, frame = video.read()
+X_test = load_data(video_npy)
 
-#         #Convert the captured frame into RGB
-#         im = Image.fromarray(frame, 'RGB')
-
-#         #Resizing into dimensions you used while training
-#         im = im.resize((24,32))
-#         img_array = np.array(im)
-
-#         #Expand dimensions to match the 4D Tensor shape.
-img_array = video_to_npy_array(video_path)
-img_array = np.expand_dims(img_array, axis=0)
-
-        #Calling the predict function using keras
-prediction = loaded_model.predict(img_array)#[0][0]
-print(prediction)
-        # #Customize this part to your liking...
-        # if(prediction == 1 or prediction == 0):
-        #     print("No Human")
-        # elif(prediction < 0.5 and prediction != 0):
-        #     print("Female")
-        # elif(prediction > 0.5 and prediction != 1):
-        #     print("Male")
-
-        # cv2.imshow("Prediction", frame)
-        # key=cv2.waitKey(1)
-        # if key == ord('q'):
-        #         break
-
-# video.release()
-# cv2.destroyAllWindows()
+# Predictions
+predictions = model.predict(X_test)
+print(predictions)
+y_classes = predictions.argmax(axis=-1)
+print(y_classes)
