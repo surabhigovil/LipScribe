@@ -210,3 +210,27 @@ def crop_store_data(set_type, words):
 crop_store_data("train", sub_folders)
 crop_store_data("val", sub_folders)
 crop_store_data("test", sub_folders)
+
+
+# Function to create Numpy array of video when required for mobile app single video
+
+
+# def store_test_data(video_path):
+#     stored = 0
+#     not_stored = 0
+#     npy = video_to_npy_array(video_path)
+#     print(npy)
+#     if npy is not None:
+#         if not os.path.exists(TEST_NPY_FOLDER):
+#             os.makedirs(TEST_NPY_FOLDER)
+#         np.save(TEST_NPY_FOLDER, npy)
+#         stored += 1
+#     else:
+#         not_stored += 1
+
+#     print("Word: {}, stored/not stored: {}/{}", stored, not_stored)
+# # Save Pre-processed Data
+
+#videoPath = "test_video/IMG_4385.mp4"
+#print(os.path.exists(videoPath))
+#store_test_data(videoPath)
