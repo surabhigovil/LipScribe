@@ -6,7 +6,7 @@ import tensorflow as tf
 from tensorflow.keras.models import model_from_json
 import os
 import sys 
-from preprocessing import video_to_npy_array
+from create_embeddings import video_to_npy_array
 
 #test video path
 video_path=<add video path here>
