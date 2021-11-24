@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">LipScribe</string>
+    <string name="action_settings">Settings</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">Welcome to LipScribe</string>
+    <string name="second_fragment_label">Prediction</string>
+    <string name="next">Next</string>
+    <string name="previous">Back</string>
+
+    <string name="hello_first_fragment">Record Video</string>
+    <string name="hello_second_fragment">Predicted Word. Arg: %1$s</string>
+</resources>
