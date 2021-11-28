@@ -20,6 +20,6 @@ Deetcting a word on app:
 <img width="501" alt="Screenshot 2021-11-23 at 3 22 44 PM" src="https://user-images.githubusercontent.com/10840984/143726901-604f68d9-ccca-474f-935f-caefc8b7b2d6.png">
 
 No Faace Detection on App:
-![image](https://user-images.githubusercontent.com/10840984/143726978-ae4f57b8-cd9b-444d-bda6-7203d75bcac6.png)
+![image](https://user-images.githubusercontent.com/10840984/143727096-ed1a12fc-fe04-451d-b5ab-80a080f321c1.png)
 
 <img width="496" alt="Screenshot 2021-11-23 at 3 23 53 PM" src="https://user-images.githubusercontent.com/10840984/143726904-89e8b691-b5a8-42fe-85b5-4af4f2e5ff24.png">
