@@ -6,10 +6,10 @@ import os
 
 
 # dataset soure destination 
-video_path = 'LRW'
+video_path = '<path to video mp4 files>'
 
 # folder to save the preprocessed samples
-NPY_FOLDER = os.path.join("NPY")
+NPY_FOLDER = '<path to store numpy array files of a video>'
 
 # set the sizes of mouth region (ROI) -> input shape
 WIDTH = 24
@@ -170,11 +170,8 @@ def video_to_npy_array(video):
     return video_array
 
 
-# In[8]:
-
-
 # crop and store the preprocessed images
-def crop_store_data(set_type, words):
+def create_npy_data(set_type, words):
 
     # if NPY_FOLDER not found, then create the folder
     if not os.path.exists(NPY_FOLDER):
@@ -192,12 +189,12 @@ def crop_store_data(set_type, words):
 
         # cycle thru word samples
         for i, video in enumerate(word_data):
-            npy = video_to_npy_array(video)
+            emb = video_to_npy_array(video)
 
-            if npy is not None:
+            if emb is not None:
                 if not os.path.exists(os.path.join(NPY_FOLDER, set_type, current_word)):
                     os.makedirs(os.path.join(NPY_FOLDER, set_type, current_word))
-                np.save(os.path.join(NPY_FOLDER, set_type, current_word, str(i)), npy)
+                np.save(os.path.join(NPY_FOLDER, set_type, current_word, str(i)), emb)
                 stored += 1
             else:
                 not_stored += 1
@@ -207,30 +204,6 @@ def crop_store_data(set_type, words):
 
 # Save Pre-processed Data
 
-crop_store_data("train", sub_folders)
-crop_store_data("val", sub_folders)
-crop_store_data("test", sub_folders)
-
-
-# Function to create Numpy array of video when required for mobile app single video
-
-
-# def store_test_data(video_path):
-#     stored = 0
-#     not_stored = 0
-#     npy = video_to_npy_array(video_path)
-#     print(npy)
-#     if npy is not None:
-#         if not os.path.exists(TEST_NPY_FOLDER):
-#             os.makedirs(TEST_NPY_FOLDER)
-#         np.save(TEST_NPY_FOLDER, npy)
-#         stored += 1
-#     else:
-#         not_stored += 1
-
-#     print("Word: {}, stored/not stored: {}/{}", stored, not_stored)
-# # Save Pre-processed Data
-
-#videoPath = "test_video/IMG_4385.mp4"
-#print(os.path.exists(videoPath))
-#store_test_data(videoPath)
+create_npy_data("train", sub_folders)
+create_npy_data("val", sub_folders)
+create_npy_data("test", sub_folders)

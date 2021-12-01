@@ -12,10 +12,11 @@ np.random.seed(7)
 np.set_printoptions(formatter={'float': '{: 0.3f}'.format})
 
 
-# source folder of video files
-video_path = 'LRW'
-# destination folder of preprocessed samples
-NPY_FOLDER = os.path.join("NPY")
+# dataset soure destination 
+video_path = '<path to video mp4 files>'
+
+# folder to save the preprocessed samples
+NPY_FOLDER = '<path to store numpy array files of a video>'
 
 # sizes of mouth region -> input shape
 WIDTH = 24
@@ -28,19 +29,13 @@ debug = False
 # list all words
 print(", ".join(os.listdir(video_path)))
 
-# all the words for training
-#sub_folders = [name for name in os.listdir(video_path) if os.path.isdir(os.path.join(video_path, name))]
-#print(sub_folders)
-#print(len(sub_folders))
-
-# In[32]:
-
 # train_words subset of words for training
-train_words = ['AGREE', 'BUSINESS', 'CUSTOMERS', 'DAVID', 'DEATH', 'ECONOMY', 'TRYING', 'UNDER', 'VICTIMS', 'WAITING', 'YEARS']
+train_words = [name for name in os.listdir(video_path) if os.path.isdir(os.path.join(video_path, name))]
 print(len(train_words))
 
 classes = len(train_words)  # len(words)
 
+# one hot encoding the labels
 labels = train_words
 num_labels = [i for i in range(0, len(labels))]
 hot_labels = to_categorical(num_labels)
@@ -48,15 +43,7 @@ hot_labels = to_categorical(num_labels)
 num_labels_dict = dict(zip(labels, num_labels))
 hot_labels_dict = dict(zip(labels, hot_labels))
 
-
-def augment_data(sample):
-    if np.random.rand() > .5: sample = np.flip(sample, 2) # flip the sample horizontally
-    return sample
-
-
-# In[36]:
-
-
+#custome data generator for keras training
 def sample_generator(basedir, set_type, batch_size):
     """Replaces Keras' native ImageDataGenerator."""
     
@@ -70,7 +57,8 @@ def sample_generator(basedir, set_type, batch_size):
     file_list = []
     # Populate with file paths and labels
     for word_folder in labels:
-        file_list.extend((word_folder, os.path.join(directory, word_folder, word_name))                          for word_name in os.listdir(os.path.join(directory, word_folder)))
+        file_list.extend((word_folder, os.path.join(directory, word_folder, word_name))                          
+        for word_name in os.listdir(os.path.join(directory, word_folder)))
     
     while True:
         for b in range(batch_size):
@@ -91,17 +79,10 @@ def sample_generator(basedir, set_type, batch_size):
 
 # ## Shape and data type of generated samples 
 
-# In[37]:
-
-
 a = sample_generator(NPY_FOLDER, "train", 2)
 s = next(a)
 print(s[0].dtype, s[1].dtype)
 print(s[0].shape, s[1].shape)
-
-
-# In[38]:
-
 
 # load all data at once into arrya - e.g when evaluating the test subset
 def load_data(basedir, set_type):
@@ -110,7 +91,8 @@ def load_data(basedir, set_type):
     file_list = []
     for word_folder in labels:
         file_list.extend((word_folder, os.path.join(directory, word_folder, word_name))                          for word_name in os.listdir(os.path.join(directory, word_folder)))
-        
+    
+    #randomise data
     shuffle(file_list)
     
     X = []
@@ -132,14 +114,7 @@ def load_data(basedir, set_type):
 
 # ## Train the Lip Reading Model ##
 
-# In[39]:
-
-
-models_dir = 'lip_reading_models/'
-model_name = "model_one"
-
-
-# In[44]:
+models_dir = '<directory where trained model is saved>'
 
 
 def get_model(dropout_rate):
@@ -169,38 +144,31 @@ model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy
 
 # save model architecture to json
 model_json = model.to_json()
-with open(models_dir + model_name + ".json", "w") as json_file:
+with open(models_dir + 'model_name' + ".json", "w") as json_file:
     json_file.write(model_json)
 
 # plot the model architecture
 model.summary()
-plot_model(model, to_file='outputs/architecture_{}.pdf'.format(model_name), show_shapes=True, show_layer_names=False)
+plot_model(model, to_file='outputs/architecture_{}.pdf'.format('model_name'), show_shapes=True, show_layer_names=False)
 
 
-# ## Initialize Keras Callback
+# ## Initialize checkpoints for keras model training
 
-# In[48]:
-
-
-tensorboard = TensorBoard(log_dir="logs/{}".format(model_name),
+tensorboard = TensorBoard(log_dir="logs/{}".format('model_name'),
                           write_graph=True, write_images=True)
     
-filepath = models_dir + model_name + ".h5"
+filepath = models_dir + 'model_name' + ".h5"
 checkpoint = ModelCheckpoint(filepath, monitor='val_accuracy', verbose=1,
                              save_best_only=True, save_weights_only=True, mode='max')
 
 earlyStopping = EarlyStopping(monitor='val_accuracy', patience=4, verbose=1, mode='max')
 
-csv_logger = CSVLogger('outputs/log_{}.csv'.format(model_name), append=True, separator=';')
+csv_logger = CSVLogger('outputs/log_{}.csv'.format('model_name'), append=True, separator=';')
 
 learning_rate_reduction = ReduceLROnPlateau(monitor='val_accuracy', patience=3, verbose=1, factor=0.5, min_lr=0.0001)
 
 
 # ## Run the training model
-
-# In[47]:
-
-
 nb_epoch = 30
 batch_size = 16
 
@@ -219,9 +187,6 @@ history = model.fit_generator(
 
 
 # ## Plot and Save the training results
-
-# In[49]:
-
 
 def plot_and_save_training():
     plt.figure(1, figsize=(8,8))
@@ -247,14 +212,10 @@ def plot_and_save_training():
     
     plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.3)
     
-    plt.savefig('outputs/train_{}.pdf'.format(model_name))
+    plt.savefig('outputs/train_{}.pdf'.format('model_name'))
     plt.show()
 
 plot_and_save_training()
-
-
-# In[ ]:
-
 
 
 

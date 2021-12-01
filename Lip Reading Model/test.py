@@ -19,13 +19,6 @@ np.set_printoptions(formatter={'float': '{: 0.3f}'.format})
 model_name = "model_one"
 models_dir = 'lip_reading_models/'
 
-# all the words for training
-#sub_folders = [name for name in os.listdir(video_path) if os.path.isdir(os.path.join(video_path, name))]
-#print(sub_folders)
-#print(len(sub_folders))
-
-# In[32]:
-
 # train_words subset of words for training
 train_words = ['AGREE', 'BUSINESS', 'CUSTOMERS', 'DAVID', 'DEATH', 'ECONOMY', 'TRYING', 'UNDER', 'VICTIMS', 'WAITING', 'YEARS']
 print(len(train_words))
