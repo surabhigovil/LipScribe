@@ -11,7 +11,7 @@
 
 
 # Android Application:
-An android operating system compatible application is developed to deploy the predictions from the model. The application requires model built with tensorflow version 1.15. ffmpeg library is used to extract frames for data preprocessing from a video. These frames for each video are sent to the model for prediction. 
+An android operating system compatible application is developed to deploy the predictions from the model. The application requires model built with tensorflow version 1.15. ffmpeg library is used to extract frames for data preprocessing from a video. The mouth region is extracted and converted into embeddings and passed as input to the model . 
 
 # Demo:
 Deetcting a word on app:
