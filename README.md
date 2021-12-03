@@ -1,4 +1,12 @@
 ## LipScribe: An application that converts lip movements of speakers in a silent video to text and display that using an android application. Exploiting the capabilities of 3D CNN to extract information from spatio temporal data this Deep Learning aims at creating words from a sequence of frames in a video.
+# Android application installation and using:
+1. Install the android application using the APK from https://drive.google.com/drive/folders/10pGHK0VYddb7Kn0rjqMDCVR4Nh-bR_U3?usp=sharing
+2. On launching the application on android phone, it checks for the camera and requests the permission for recording videos and capturing pictures. 
+3. Choose to allow the application to record videos and capture pictures. 
+4. Click on allow for the application on request for accessing the files and media.
+5. Click on 'start camera' on start page to start recording the video.
+6. The recorded video is processed from external storage and given to model for prediction this happens in background and loading screen is displayed on screen.
+7. The prediction of the word speaker utterted is displayed on the screen.
 
 # Working of the application:
 1. Use the android aplication to record a video.
